@@ -12,11 +12,12 @@ from shutil import copyfile
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.colors import LightSource
 
+type = 'png'
+frameLocation = "/tmp/gifmovie/"
+
 count = 0
 
 def movie_file(name) :
-    type = 'png'
-    frameLocation = "/tmp/gifmovie/"
     out = 'evolution.gif'
     numstart = len(frameLocation)
     next_file = frameLocation + '00000m.' + type
@@ -69,7 +70,7 @@ for i in range(n) :
 ls = LightSource(azdeg=0, altdeg=65)
 rgb = ls.shade(z, plt.cm.RdYlBu)
 
-elevation = 26
+elevation = 10
 edir = True
 azimuth = 11
 adir = True
@@ -80,14 +81,14 @@ while True :
     ax.grid(False) # Hide grid lines
     ax.axis('off') # OR #ax.set_xticks([])#ax.set_yticks([])#ax.set_zticks([])
     count = count + 1
-    if (count % 4 == 0) :
+    if (count % 2 == 0) :
         if (edir) :
             if (elevation < 30) :
                 elevation = elevation + 0.5
             else :
                 edir = not edir
         else :
-            if (elevation > 10) :
+            if (elevation > 0) :
                 elevation = elevation - 0.5
             else :
                 edir = not edir
@@ -104,30 +105,33 @@ while True :
     ax.view_init(elevation,azimuth)
     ax.dist = 4.6
     for i in range(n) : # Crawl randomly ->(100,100) before assigning vz
-        if (rix[i] < max) :
-            dx = random.uniform(-0.1,0.2)
+        if (rix[i] < maxx) :
+            dx = random.randint(-1,2)
         else :
-            dx = random.uniform(-0.2,0.1)
-        if (riy[i] < 130) :
-            dy = random.uniform(-0.1,0.2)
+            dx = random.randint(-2,1)
+        if (riy[i] < maxy) :
+            dy = random.randint(-1,2)
         else :
-            dy = random.uniform(-0.2,0.1)
-        rix[i] = rix[i] + dx
-        riy[i] = riy[i] + dy
-        vx[i] = x[rix[i]][0]
-        vy[i] = y[0][riy[i]]
-        vz[i] = z[rix[i]][riy[i]] + 1.0
+            dy = random.randint(-2,1)
+        newx = rix[i] + dx
+        if not newx in rix and newx > -1 and newx < 150:
+            rix[i] = newx
+        newy = riy[i] + dy
+        if not newy in riy and newy > -1 and newy < 150:
+            riy[i] = newy
+        vx[i] = x[rix[i]][0] + random.uniform(-0.02,0.02)
+        vy[i] = y[0][riy[i]] + random.uniform(-0.02,0.02)
+        vz[i] = z[rix[i]][riy[i]] + 0.2 + random.uniform(-0.04,0.04)
 
     ax.scatter(np.asarray(vx), np.asarray(vy), np.asarray(vz),
                c='r', marker='o')
-    ax.scatter(np.asarray([x[110][0]]),np.asarray([y[0][120]]),np.asarray([9]),
+    ax.scatter(np.asarray([x[maxx][0]]),np.asarray([y[0][maxy]]),np.asarray([maxz+0.2]),
                c='b', marker='D')
 
     surf = ax.plot_surface(x, y, z, rstride=1, cstride=1, linewidth=0,
                            antialiased=False, facecolors=rgb)
-
-    plt.savefig('frame.png', bbox_inches='tight')
-    movie_file('frame.png')
+    plt.savefig(frameLocation + 'frame.png', bbox_inches='tight')
+    movie_file(frameLocation + 'frame.png')
     plt.close(1)
 
 
