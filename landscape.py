@@ -6,16 +6,93 @@ Fitness landscape for Innatrix Evolution Demonstration
 
 from __future__ import print_function
 import numpy as np
+import mpl_toolkits.mplot3d as a3
+import pylab as pl
+import scipy as sp
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import matplotlib.colors as colors
+import matplotlib
+
 import random, glob, os, subprocess
 from shutil import copyfile
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.colors import LightSource
 
+sdb = False  # String suppression (False for debugging)
 type = 'png'
 frameLocation = "/tmp/gifmovie/"
 
 count = 0
+                          
+aa = [    'Ala',    'Arg',    'Asn',    'Asp',    'Asx',    'Cys',    'Glu',
+          'Gln',    'Glx',    'Gly',    'His',    'Ile',    'Leu',    'Lys',
+          'Met',    'Phe',    'Pro',    'Ser',    'Pro',    'Thr',    'Trp',
+          'Tyr',    'Val' ]
+
+aa3 = [[['Phe','Phe','Leu','Leu'],
+        ['Leu','Leu','Leu','Leu'],
+        ['Ile','Ile','Ile','Met'],
+        ['Val','Val','Val','Val'] ],
+       [ ['Ser']*4, 
+         ['Pro']*4, 
+         ['Thr']*4, 
+         ['Ala']*4 ],
+       [ ['Tyr','Tyr','stop','stop'],
+         ['His','His','Gln','Gln'],
+         ['Asn','Asn','Lys','Lys'],
+         ['Asp','Asp','Glu','Glu'] ],
+       [ ['Cys','Cys','stop','Trp'],
+         ['Arg']*4,
+         ['Ser','Ser','Arg','Arg'],
+         ['Gly']*4 ] ]
+
+aa = [    'Ala',    'Arg',    'Asn',    'Asp',    'Asx',    'Cys',    'Glu',
+          'Gln',    'Glx',    'Gly',    'His',    'Ile',    'Leu',    'Lys',
+          'Met',    'Phe',    'Pro',    'Ser',    'Pro',    'Thr',    'Trp',
+          'Tyr',    'Val' ]
+
+n = 30
+va = [0]*n
+vb = [0]*n
+vb2 = [0]*n
+vc = [0]*n
+# Mutation: Random Amino Acid and random Single-base mutant
+def aastr(i) :
+    if (sdb) :
+        return ''
+    va[i], vb[i], vc[i] = [ random.randint(0,2),random.randint(0,2), random.randint(0,2) ]
+    vb2[i] = random.randint(0,2)
+    return aa3[va[i]][vb[i]][vc[i]] + str(random.randrange(230,315)) + aa3[va[i]][vb2[i]][vc[i]]
+
+def aamut(i) :
+    if (sdb) :
+        return ''
+    vb2[i] = random.randint(0,2)
+    return aa3[va[i]][vb[i]][vc[i]] + str(random.randrange(130,455)) + aa3[va[i]][vb2[i]][vc[i]]
+
+# Prepare starting locations
+vx = [0]*n
+vy = [0]*n
+vz = [-20]*n
+rix = [0]*n
+riy = [0]*n
+vp = [aastr(6)]*n
+
+rx = 0
+ry = 0
+random.seed(0)  # seed for reproducible 'random' numbers
+
+def disp_string(i,x,y,z) :
+    if (sdb) :
+        return ''
+    return str(i) + "(" + str(round(x,2)) + "," + str(round(y,2)) + "," + str(round(z,2)) + ")"
+
+def duplicate(x,y,xs,ys) :
+    for i in range(len(xs)) :
+        if ( xs[i]==x and ys[i]==y ) :
+            return True
+    return False
 
 def movie_file(name) :
     out = 'evolution.gif'
@@ -30,16 +107,21 @@ def movie_file(name) :
     copyfile(name, next_file)
     print("Saved frame: " + next_file)
     if (count % 10 == 0) :
-	cmd=['convert','-delay','20','-loop','0','0*.png',out]
+	cmd=['convert','-delay','10','-loop','0','0*.png',out]
         subprocess.call(cmd,cwd=frameLocation)
         print("Saved movie: " + frameLocation + out)
 
 
 # Test data: Matlab `peaks()`
 x, y = np.mgrid[-3:3:150j,-3:3:150j]
+
+#z =  3*(1 - x/2)**2 * np.exp(-x**2 - (y + 1)**2) \
+#   - 2*(x/6 - (x**3)/7 - y**3)*np.exp(-x**2 - y**2) \
+#   - 2.0*np.exp(-(x + 1)**2 - y**3) 
+
 z =  3*(1 - x)**2 * np.exp(-x**2 - (y + 1)**2) \
    - 10*(x/5 - x**3 - y**5)*np.exp(-x**2 - y**2) \
-   - 1./3*np.exp(-(x + 1)**2 - y**2) 
+   - 1./3*np.exp(-(x + 1)**2 - y**2)
 
 maxx = 0
 maxy = 0
@@ -50,40 +132,49 @@ for a in range(150):      # Find global peak
             maxz = z[a][b]
             maxx = a
             maxy = b
-        
-# Prepare starting locations
-n = 50
-vx = [0]*n
-vy = [0]*n
-vz = [0]*n
-rix = [0]*n
-riy = [0]*n
-rx = 0
-ry = 0
-random.seed(0)  # seed for reproducible 'random' numbers
+
+print(" Maxima = "+disp_string(0,maxx,maxy,maxz))
+
 for i in range(n) :
     rix[i] = random.randrange(0,150)
     riy[i] = random.randrange(0,150)
     vx[i] = x[rix[i]][0]
     vy[i] = y[0][riy[i]]
+    vp[i] = aastr(6)
 
-ls = LightSource(azdeg=0, altdeg=65)
+ls = LightSource(azdeg=100, altdeg=65)
 rgb = ls.shade(z, plt.cm.RdYlBu)
-
+plt.rc( 'font', size=6)
 elevation = 10
 edir = True
-azimuth = 11
+azimuth = 40
 adir = True
+
 while True :
     fig = plt.figure(1)
     ax = fig.gca(projection='3d')
     plt.hold(True)
     ax.grid(False) # Hide grid lines
     ax.axis('off') # OR #ax.set_xticks([])#ax.set_yticks([])#ax.set_zticks([])
+    ax.view_init(elevation, azimuth)
+    ax.dist = 7
+    for i in range(10):
+        vtx = sp.rand(4,3) * 3 # + sp.asarray([ [3,3,3],
+                               #                [3,3,3],
+                               #                [3,3,3] ])
+        tri = a3.art3d.Poly3DCollection([vtx])
+        tri.set_color(colors.rgb2hex(sp.rand(3)))
+        tri.set_edgecolor('k')
+        ax.add_collection3d(tri)
+
     count = count + 1
-    if (count % 2 == 0) :
+    if (count < 3) :
+        origin = 'Start'
+    else :
+        origin = '(0,0)'
+    if False :  # (count % 2 == 0) :
         if (edir) :
-            if (elevation < 30) :
+            if (elevation < 40) :
                 elevation = elevation + 0.5
             else :
                 edir = not edir
@@ -93,7 +184,7 @@ while True :
             else :
                 edir = not edir
         if (adir) :
-            if (azimuth < 40) :
+            if (azimuth < 180) :
                 azimuth = azimuth + 0.5
             else :
                 adir = not adir
@@ -102,37 +193,42 @@ while True :
                 azimuth = azimuth - 0.5
             else :
                 adir = not adir
-    ax.view_init(elevation,azimuth)
-    ax.dist = 4.6
+    ax.text( -3, -3, 0.4, origin, None, color='g')
+    ax.scatter(np.asarray(-3), np.asarray(-3), np.asarray(0.3), c='g', marker='s')
     for i in range(n) : # Crawl randomly ->(100,100) before assigning vz
         if (rix[i] < maxx) :
-            dx = random.randint(-1,2)
+            dx = random.randint(-2,3)
         else :
-            dx = random.randint(-2,1)
+            dx = random.randint(-3,2)
         if (riy[i] < maxy) :
-            dy = random.randint(-1,2)
+           dy = random.randint(-2,3)
         else :
-            dy = random.randint(-2,1)
+            dy = random.randint(-3,2)
+        # Randomish walk, but don't go out of bounds, and no duplicates, and never downhill
         newx = rix[i] + dx
-        if not newx in rix and newx > -1 and newx < 150:
-            rix[i] = newx
         newy = riy[i] + dy
-        if not newy in riy and newy > -1 and newy < 150:
-            riy[i] = newy
+        if newx>0 and newx<150 and newy>0 and newy<150 and z[rix[i]][riy[i]] < maxz :
+            if not duplicate(newx,newy,rix,riy) :
+                rix[i] = newx
+                riy[i] = newy
+                vp[i] = aamut(i)
         vx[i] = x[rix[i]][0] + random.uniform(-0.02,0.02)
         vy[i] = y[0][riy[i]] + random.uniform(-0.02,0.02)
-        vz[i] = z[rix[i]][riy[i]] + 0.2 + random.uniform(-0.04,0.04)
+        vz[i] = max(1.5,z[rix[i]][riy[i]]) + 1.6 + random.uniform(-0.04,0.04)
 
+        if (abs(maxz - z[rix[i]][riy[i]]) > 0.2) :
+            ax.text(vx[i],vy[i],vz[i],vp[i], None)
+    surf = ax.plot_surface(x, y, z, rstride=1, cstride=1, linewidth=0,
+                           antialiased=False, facecolors=rgb)
     ax.scatter(np.asarray(vx), np.asarray(vy), np.asarray(vz),
                c='r', marker='o')
     ax.scatter(np.asarray([x[maxx][0]]),np.asarray([y[0][maxy]]),np.asarray([maxz+0.2]),
                c='b', marker='D')
-
-    surf = ax.plot_surface(x, y, z, rstride=1, cstride=1, linewidth=0,
-                           antialiased=False, facecolors=rgb)
+#    ax.text(x[maxx][0],y[0][maxy],maxz+0.2,"Goal",'y')
     plt.savefig(frameLocation + 'frame.png', bbox_inches='tight')
     movie_file(frameLocation + 'frame.png')
     plt.close(1)
 
 
-    
+
+
