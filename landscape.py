@@ -22,6 +22,8 @@ from matplotlib.colors import LightSource
 sdb = False  # String suppression (False for debugging)
 type = 'png'
 frameLocation = "/tmp/gifmovie/"
+if (not os.path.isfile(frameLocation)) :
+    os.mkdir(frameLocation)
 
 count = 0
                           
