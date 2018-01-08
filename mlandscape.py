@@ -140,7 +140,7 @@ def movie_file(name) :
     copyfile(name, next_file)
     print("Saved frame: " + next_file)
     if (count % 10 == 0) :
-	cmd=['convert','0*.png','-gravity', 'Center', '-crop', '500x280+20-20!', '-delay','12','-loop','0',out]
+        cmd=['convert','0*.png','-gravity', 'Center', '-crop', '500x280+20-20!', '-delay','12','-loop','0',out]
         subprocess.call(cmd,cwd=frameLocation)
         print("Saved movie: " + frameLocation + out)
         preview()
