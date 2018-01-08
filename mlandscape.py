@@ -49,10 +49,8 @@ aa3 = [[['Phe','Phe','Leu','Leu'],
          ['Ser','Ser','Arg','Arg'],
          ['Gly']*4 ] ]
 
-aa = [    'Ala',    'Arg',    'Asn',    'Asp',    'Asx',    'Cys',    'Glu',
-          'Gln',    'Glx',    'Gly',    'His',    'Ile',    'Leu',    'Lys',
-          'Met',    'Phe',    'Pro',    'Ser',    'Pro',    'Thr',    'Trp',
-          'Tyr',    'Val' ]
+# aminoAcidName = aa3[0][0][0]   #  AAA  A = 0, T = 1, C= 2, G = 3
+# aminoAcidName = aa3[1][2][3]   #  TCG
 
 n = 30
 va = [0]*n
@@ -138,10 +136,9 @@ def movie_file(name) :
     copyfile(name, next_file)
     print("Saved frame: " + next_file)
     if (count % 10 == 0) :
-	cmd=['convert','-delay','20','-loop','0','0*.png',out]
+	cmd=['convert','-delay','12','-loop','0','0*.png',out]
         subprocess.call(cmd,cwd=frameLocation)
         print("Saved movie: " + frameLocation + out)
-
 
 # Test data: Matlab `peaks()`
 x, y = np.mgrid[-3:3:150j,-3:3:150j]
@@ -262,7 +259,7 @@ while True :
         vx[i] = x[rix[i]][0] + random.uniform(-0.02,0.02)
         vy[i] = y[0][riy[i]] + random.uniform(-0.02,0.02)
         vz[i] = z[rix[i]][riy[i]] + 0.2 + random.uniform(-0.04,0.04)
-        ax.text(vx[i],vy[i],vz[i]+1.0,vp[i], None, zorder=10)
+#        ax.text(vx[i],vy[i],vz[i]+1.0,vp[i], None, zorder=10)
     ax.plot3D(np.asarray(vx), np.asarray(vy), np.asarray(vz),
                c='r', marker='o', zorder=10,linestyle='None')
     ax.scatter(np.asarray([x[maxx][0]]),np.asarray([y[0][maxy]]),np.asarray([maxz+0.2]),
