@@ -262,8 +262,6 @@ while True :
 #        ax.text(vx[i],vy[i],vz[i]+1.0,vp[i], None, zorder=10)
     ax.plot3D(np.asarray(vx), np.asarray(vy), np.asarray(vz),
                c='r', marker='o', zorder=10,linestyle='None')
-    ax.scatter(np.asarray([x[maxx][0]]),np.asarray([y[0][maxy]]),np.asarray([maxz+0.2]),
-               c='b', marker='D')
 #    ax.text(x[maxx][0],y[0][maxy],maxz+0.2,"Goal",'y')
 #    for vtx in [ sp.rand(4,3)*2 + 2 for i in range(10) ] :
     for vtx in np.asarray(cube())*np.asarray([[1,1,2],[1,1,2],[1,1,2],[1,1,2]])+1.0 :
@@ -276,6 +274,8 @@ while True :
     surf = ax.plot_surface(x, y, z, rstride=1, cstride=1, linewidth=0,
                            antialiased=False, facecolors=rgb, zsort='min',zorder=5)
 
+    ax.scatter(np.asarray([x[maxx][0]]),np.asarray([y[0][maxy]]),np.asarray([maxz+0.2]),
+               c='b', marker='D', zorder=20)
     plt.savefig(frameLocation + 'frame.png', bbox_inches='tight')
     movie_file(frameLocation + 'frame.png')
     plt.close(1)
