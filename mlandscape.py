@@ -311,6 +311,7 @@ while True :
         tris = lovely_box()
 
 # Blue Diamond marker at global maximum
+
 #    ax.scatter(np.asarray([x[maxx][0]]),np.asarray([y[0][maxy]]),np.asarray([maxz+0.2]),
 #               c='b', marker='D', zorder=20)
 
