@@ -32,15 +32,15 @@ aa = [    'Ala',    'Arg',    'Asn',    'Asp',    'Asx',    'Cys',    'Glu',
           'Met',    'Phe',    'Pro',    'Ser',    'Pro',    'Thr',    'Trp',
           'Tyr',    'Val' ]
 
-aa3 = [[['Phe','Phe','Leu','Leu'],
+aa3 = [[['Arg','Arg','Leu','Leu'],
         ['Leu','Leu','Leu','Leu'],
         ['Ile','Ile','Ile','Met'],
         ['Val','Val','Val','Val'] ],
-       [ ['Ser']*4, 
+       [ ['Ser','Val','Leu','Asp'], 
          ['Pro']*4, 
          ['Thr']*4, 
          ['Ala']*4 ],
-       [ ['Tyr','Tyr','stop','stop'],
+       [ ['Ser','Ser','stop','stop'],
          ['His','His','Gln','Gln'],
          ['Asn','Asn','Lys','Lys'],
          ['Asp','Asp','Glu','Glu'] ],
@@ -65,7 +65,7 @@ def aastr(i) :
         return ''
     va[i], vb[i], vc[i] = [ random.randint(0,2),random.randint(0,2), random.randint(0,2) ]
     va2[i], vb2[i], vc2[i] = [ random.randint(0,2),random.randint(0,2), random.randint(0,2) ]
-    return aa3[va[i]][vb[i]][vc[i]] + str(random.randrange(230,315)) + aa3[va[i]][vb2[i]][vc[i]]
+    return aa3[va[i]][vb[i]][vc[i]] + str(random.randrange(235,245)) + aa3[va[i]][vb2[i]][vc[i]]
 
 def aamut(i) :
     if (sdb) :
@@ -73,6 +73,10 @@ def aamut(i) :
     while va2[i] == va[i] :
         va2[i] = random.randint(0,2)
     return aa3[va[i]][vb[i]][vc[i]] + str(random.randrange(130,455)) + aa3[va2[i]][vb2[i]][vc2[i]]
+
+def show_global_max() :
+    ax.scatter(np.asarray([x[maxx][0]]),np.asarray([y[0][maxy]]),np.asarray([maxz+0.2]),
+               c='b', marker='D', zorder=20)
 
 def cube() :
     return [   [ [ 0, 0, 0 ], # bottom
@@ -136,9 +140,10 @@ def movie_file(name) :
     copyfile(name, next_file)
     print("Saved frame: " + next_file)
     if (count % 10 == 0) :
-	cmd=['convert','-delay','12','-loop','0','0*.png',out]
+	cmd=['convert','0*.png','-gravity', 'Center', '-crop', '500x280+20-20!', '-delay','12','-loop','0',out]
         subprocess.call(cmd,cwd=frameLocation)
         print("Saved movie: " + frameLocation + out)
+        preview()
 
 # Test data: Matlab `peaks()`
 x, y = np.mgrid[-3:3:150j,-3:3:150j]
@@ -167,6 +172,36 @@ def mesh(zr) :
             mz.append(zr[i][j]+0.2)
     return (mx, my, mz)
 
+def preview() :
+    fp = open('./preview.html','w')
+    fp.write("<html><head></head><body>\n")
+    for i in range(10) :
+        name = "/tmp/gifmovie/0000"+str(i)+"m.png"
+        if (os.path.isfile(name)) :
+            fp.write("<img src=\""+name+"\"/>"+name+"\n")
+    for i in range(10,100) :
+        name = "/tmp/gifmovie/000"+str(i)+"m.png"
+        if (os.path.isfile(name)) :
+            fp.write("<img src=\""+name+"\"/>"+name+"\n")
+    for i in range(100,300) :
+        name = "/tmp/gifmovie/00"+str(i)+"m.png"
+        if (os.path.isfile(name)) :
+            fp.write("<img src=\""+name+"\"/>"+name+"\n")
+    fp.write("</body></html>\n")
+    fp.close()
+
+def lovely_box() :
+    cubeoff = np.asarray([[1,1,2],[1,1,2],[1,1,2],[1,1,2]])
+    faces = []
+    for vtx in np.asarray(cube())*cubeoff + [2.3,2.1,0] :
+        tri = a3.art3d.Poly3DCollection([vtx],facecolors='w', linewidths=1, alpha=0.5, zsort='max')
+        tri.set_sort_zpos(1)
+        tri.set_zsort('min')
+        tri.set_color(colors.rgb2hex(sp.rand(3)))
+        tri.set_edgecolor('k')
+        faces.append(tri)
+    return faces
+
 maxx = 0
 maxy = 0
 maxz = 0
@@ -186,15 +221,18 @@ for i in range(n) :
     vy[i] = y[0][riy[i]]
     vz[i] = z[rix[i]][riy[i]]
     vp[i] = aastr(6)
+    vp[i] = aastr(6)
 
 ls = LightSource(azdeg=20, altdeg=65)
 rgb = ls.shade(z, plt.cm.RdYlBu)
 plt.rc( 'font', size=8)
 elevation = 20
 edir = True
-azimuth = 130
+azimuth = 80
 adir = True
 
+tris = lovely_box()
+plt.rcParams['axes.facecolor'] = 'black'
 while True :
     fig = plt.figure(1)
     ax = fig.gca(projection='3d')
@@ -202,9 +240,8 @@ while True :
     ax.grid(False) # Hide grid lines
     ax.axis('off') # OR #ax.set_xticks([])#ax.set_yticks([])#ax.set_zticks([])
     ax.view_init(elevation, azimuth)
-    ax.dist = 7
+    ax.dist = 6
 
-    count = count + 1
     if (count < 3) :
         origin = 'Start'
     else :
@@ -235,10 +272,10 @@ while True :
     # Grab one at random and place it in the box
     if (count % 14 == 0) :
         randi = random.randint(0,n)
-        rix[randi] = 144
-        riy[randi] = 144
+        rix[randi] = 140
+        riy[randi] = 140
         vz[randi] = z[rix[randi]][riy[randi]] + 0.2
-        print("  z["+str(randi)+"] = "+str(vz[randi])+vp[randi])
+        print(str(randi) + " " + vp[randi]+" -> box")
     for i in range(n) : # Crawl randomly ->(100,100) before assigning vz
         if (rix[i] < maxx) :
             dx = random.randint(-2,3)
@@ -261,25 +298,21 @@ while True :
         vz[i] = z[rix[i]][riy[i]] + 0.2 + random.uniform(-0.04,0.04)
 #        ax.text(vx[i],vy[i],vz[i]+1.0,vp[i], None, zorder=10)
     ax.plot3D(np.asarray(vx), np.asarray(vy), np.asarray(vz),
-               c='r', marker='o', zorder=10,linestyle='None')
-#    ax.text(x[maxx][0],y[0][maxy],maxz+0.2,"Goal",'y')
-#    for vtx in [ sp.rand(4,3)*2 + 2 for i in range(10) ] :
-    for vtx in np.asarray(cube())*np.asarray([[1,1,2],[1,1,2],[1,1,2],[1,1,2]])+1.0 :
-        tri = a3.art3d.Poly3DCollection([vtx],facecolors='w', linewidths=1, alpha=0.5, zsort='max')
-        tri.set_sort_zpos(1)
-        tri.set_zsort('min')
-        tri.set_color(colors.rgb2hex(sp.rand(3)))
-        tri.set_edgecolor('k')
+               c='r', marker='o', markersize=3, zorder=10,linestyle='None')
+    for tri in tris :
         ax.add_collection3d(tri)
     surf = ax.plot_surface(x, y, z, rstride=1, cstride=1, linewidth=0,
                            antialiased=False, facecolors=rgb, zsort='min',zorder=5)
-
-    ax.scatter(np.asarray([x[maxx][0]]),np.asarray([y[0][maxy]]),np.asarray([maxz+0.2]),
-               c='b', marker='D', zorder=20)
     plt.savefig(frameLocation + 'frame.png', bbox_inches='tight')
     movie_file(frameLocation + 'frame.png')
     plt.close(1)
+    count = count + 1
+    if (count % 14 == 0) : # Recolor box after new mutatione arrives
+        tris = lovely_box()
 
+# Blue Diamond marker at global maximum
+#    ax.scatter(np.asarray([x[maxx][0]]),np.asarray([y[0][maxy]]),np.asarray([maxz+0.2]),
+#               c='b', marker='D', zorder=20)
 
 
 
