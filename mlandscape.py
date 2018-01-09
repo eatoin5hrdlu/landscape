@@ -14,7 +14,7 @@ import matplotlib.patches as mpatches
 import matplotlib.colors as colors
 import matplotlib
 
-import random, glob, os, subprocess
+import random, glob, os, subprocess, sys
 from shutil import copyfile
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.colors import LightSource
@@ -22,8 +22,20 @@ from matplotlib.colors import LightSource
 sdb = False  # String suppression (False for debugging)
 type = 'png'
 frameLocation = "/tmp/gifmovie/"
+# File name according to options (labelled, unlabeled, black, white bg
+out = 'evolution.gif'
 if (not os.path.isdir(frameLocation)) :
     os.mkdir(frameLocation)
+if 'aa' in sys.argv :
+    if 'black' in sys.argv :
+        out = 'blabel.gif'
+    else :
+        out = 'label.gif'
+else :
+    if 'black' in sys.argv :
+        out = 'bplain.gif'
+    else :
+        out = 'plain.gif'
 
 count = 0
                           
@@ -128,7 +140,6 @@ def duplicate(x,y,xs,ys) :
     return False
 
 def movie_file(name) :
-    out = 'evolution.gif'
     numstart = len(frameLocation)
     next_file = frameLocation + '00000m.' + type
     numend = numstart + 5
@@ -232,7 +243,8 @@ azimuth = 80
 adir = True
 
 tris = lovely_box()
-plt.rcParams['axes.facecolor'] = 'black'
+if 'black' in sys.argv :
+    plt.rcParams['axes.facecolor'] = 'black'
 while True :
     fig = plt.figure(1)
     ax = fig.gca(projection='3d')
@@ -296,13 +308,17 @@ while True :
         vx[i] = x[rix[i]][0] + random.uniform(-0.02,0.02)
         vy[i] = y[0][riy[i]] + random.uniform(-0.02,0.02)
         vz[i] = z[rix[i]][riy[i]] + 0.2 + random.uniform(-0.04,0.04)
-#        ax.text(vx[i],vy[i],vz[i]+1.0,vp[i], None, zorder=10)
+        if 'aa' in sys.argv :
+            ax.text(vx[i],vy[i],vz[i]+1.0,vp[i], None, zorder=10)
     ax.plot3D(np.asarray(vx), np.asarray(vy), np.asarray(vz),
                c='r', marker='o', markersize=3, zorder=10,linestyle='None')
     for tri in tris :
         ax.add_collection3d(tri)
     surf = ax.plot_surface(x, y, z, rstride=1, cstride=1, linewidth=0,
                            antialiased=False, facecolors=rgb, zsort='min',zorder=5)
+# Blue Diamond marker at global maximum
+#    ax.scatter(np.asarray([x[maxx][0]]),np.asarray([y[0][maxy]]),np.asarray([maxz+0.2]),
+#               c='b', marker='D', zorder=20)
     plt.savefig(frameLocation + 'frame.png', bbox_inches='tight')
     movie_file(frameLocation + 'frame.png')
     plt.close(1)
@@ -310,10 +326,6 @@ while True :
     if (count % 14 == 0) : # Recolor box after new mutatione arrives
         tris = lovely_box()
 
-# Blue Diamond marker at global maximum
-
-#    ax.scatter(np.asarray([x[maxx][0]]),np.asarray([y[0][maxy]]),np.asarray([maxz+0.2]),
-#               c='b', marker='D', zorder=20)
 
 
 
