@@ -1,7 +1,6 @@
 #!/usr/bin/python -u
 """
-Fitness landscape for Innatrix Evolution Demonstration
-(From: http://matplotlib.org/examples/pylab_examples/shading_example.html
+Fitness Landscape Innatrix Evolution Demonstration
 """
 
 from __future__ import print_function

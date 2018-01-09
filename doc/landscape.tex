@@ -1,5 +1,5 @@
 \documentclass[10pt,letterpaper]{article}
-\usepackage[top=0.85in,left=2.75in,footskip=0.75in]{geometry}
+\usepackage[top=0.85in,left=2.0in,footskip=0.75in]{geometry}
 \usepackage{amsmath,amssymb}
 \usepackage{changepage}
 \usepackage[utf8]{inputenc}
@@ -84,7 +84,7 @@
 \includegraphics[scale=0.5]{{fitness}.png}
 \end{flushleft}
 
-{\it Continuous Directed Evolution can be visualized by showing mutations as entities crawling across a fitness landscape until they come to a particular height on a fitness peak.  The two-dimensional surface is an imperfect representation of sequence space, which could be thought of as NxM dimensional space for the M possible substitutions for each of the N amino acids making up the protein sequence.  For a 1000 amino acid protein, this surface would be $1000 \times 1000^21$ points and would probably be quite spikey, as mutations close to each other in this 2D representation would not necessarily have similar 'fitness'.  On the other hand, for directed evolution, the fitness is often a single quantity (say, protein-protein affinity) and is well represented by a height.  Thus the term fitness-peak to represent maxima in this space.  We use the Python matplotlib library\cite{matplotlib} program to create a series of static images, representing a particular population of mutations at one point in time.  These images are then assembled into a movie (GIF) image file to visualize the process of evolution.  This method was inspired by the animations created by Randy Olsen and Bjorn Ostman which can be found on the Wikipedia page for Fitness Landscape\cite{fitness}.}
+{\it Continuous Directed Evolution can be visualized by showing mutations as entities crawling across a fitness landscape until they come to a particular height on a fitness peak.  The two-dimensional surface is an imperfect representation of sequence space, which could be thought of as NxM dimensional space for the M possible substitutions for each of the N amino acids making up the protein sequence.  For a 1000 amino acid protein, this surface would be $1000 \times 1000^{21}$ points and would probably be quite spikey, as sequences(mutations) close to each other in this 2D representation would not necessarily have similar 'fitness'.  On the other hand, for directed evolution, the fitness is often a single quantity (say, protein-protein affinity) and is well represented by a height.  Thus the term fitness-peak to represent maxima in this space.  We use the Python matplotlib library\cite{matplotlib} program to create a series of static images, representing a particular population of mutations at one point in time.  These images are then assembled into a movie (GIF) image file to visualize the process of evolution.  This method was inspired by the animations created by Randy Olsen and Bjorn Ostman which can be found on the Wikipedia page for Fitness Landscape\cite{fitness}.}
 
 \section*{Introduction}
 
@@ -101,9 +101,9 @@ The {\bf landscape.py} program is a Python program which generates a series of i
 \end{enumerate}
 Although Octave, as an open-source alternative to MatLab is free and portable between systems, I decided to go with Python after initially prototyping in Octave.
 
-\subsection*{Using MatPlotLib}
+\subsection*{Requirements}
 The list of Python dependencies is large and so setting up the Python environment to have compatible versions of all required libraries has been a bit of a task.
-\begin{verbatim}
+\begin{lstlisting}
 from __future__ import print_function
 import numpy as np
 import mpl_toolkits.mplot3d as a3
@@ -117,10 +117,16 @@ import random, glob, os, subprocess, sys
 from shutil import copyfile
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.colors import LightSource
-\end{verbatim}
+\end{lstlisting}
+\subsubsection*{ImageMagick}
+Whenever ten additional static frames have been created, the program calls the ImageMagic\cite{imagemagick} {\tt convert} command:
+\begin{lstlisting}
+convert 0*.png -delay 12 -gravity Center -crop 500x280+20-20! out.gif
+\end{lstlisting}
+Which collects all of the properly cropped {\bf .png} files (in the /tmp/gifmovie directory) into an animated GIF with 12ms per frame.  This external command is called via the Python subprocess module, but could presumably be done using the PythonMagick bindings.  As this would also provide access to the other image enhancement features of ImageMagick this may be worth serious consideration.
 
 \subsection*{Markers}
-I chose the 'o' (circle), 'D' (diamond), and 's' (square) markers to represent the mutants, global maximum fitness peak, and landscape origin. But other markers could be chosen.
+I chose the 'o' (circle), 'D' (diamond), and 's' (square) markers to represent the mutants, global maximum fitness peak, and landscape origin. But other markers could be chosen. There is an interesting outstanding problem with z-ordering the markers when drawn on top of a 3D surface.
 
 \begin{wrapfigure}{L}{0.25\textwidth}
 \centering
@@ -128,14 +134,14 @@ I chose the 'o' (circle), 'D' (diamond), and 's' (square) markers to represent t
 \caption{\label{fig:reticules}A Single Snapshot}
 \end{wrapfigure}
 
-
 \section*{Next Steps}
 
 I'm turning this project over to Dawn Trembath.
 
 \begin{enumerate}[itemsep=1pt, topsep=2pt, partopsep=0pt]
 \item Review/re-write code: can probably be halved.
-\item Add more options to the command line to avoid editing program
+\item Add command-line options to avoid frequent program edits
+\item Consider cost/benefits of using PythonMagick bindings
 \end{enumerate}
 
 \bibliographystyle{unsrt}
